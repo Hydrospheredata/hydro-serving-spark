@@ -2,8 +2,8 @@ package io.hydrosphere.serving.grpc_spark
 
 import java.nio.file.Paths
 
-import hydrosphere.tensorflow.serving.predict.{PredictRequest, PredictResponse}
-import hydrosphere.tensorflow.serving.prediction_service.PredictionServiceGrpc
+import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
+import io.hydrosphere.serving.tensorflow.api.prediction_service.PredictionServiceGrpc
 import io.hydrosphere.serving.grpc_spark.spark.SparkModel
 
 import scala.concurrent.Future

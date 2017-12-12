@@ -1,13 +1,13 @@
 package io.hydrosphere.serving.grpc_spark
 
 import com.google.protobuf.ByteString
-import hydrosphere.contract.model_contract.ModelContract
-import hydrosphere.contract.model_signature.ModelSignature
-import hydrosphere.tensorflow.serving.predict.PredictResponse
-import hydrosphere.tensorflow.tensor.TensorProto
-import hydrosphere.tensorflow.tensor_shape.TensorShapeProto
-import hydrosphere.tensorflow.types.DataType
-import hydrosphere.tensorflow.types.DataType.{DT_BOOL, DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_INT16, DT_INT32, DT_INT64, DT_INT8, DT_INVALID, DT_QINT16, DT_QINT32, DT_QINT8, DT_QUINT16, DT_QUINT8, DT_STRING, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8, DT_VARIANT, Unrecognized}
+import io.hydrosphere.serving.contract.model_contract.ModelContract
+import io.hydrosphere.serving.contract.model_signature.ModelSignature
+import io.hydrosphere.serving.tensorflow.api.predict.PredictResponse
+import io.hydrosphere.serving.tensorflow.tensor.TensorProto
+import io.hydrosphere.serving.tensorflow.tensor_shape.TensorShapeProto
+import io.hydrosphere.serving.tensorflow.types.DataType
+import io.hydrosphere.serving.tensorflow.types.DataType.{DT_BOOL, DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_INT16, DT_INT32, DT_INT64, DT_INT8, DT_INVALID, DT_QINT16, DT_QINT32, DT_QINT8, DT_QUINT16, DT_QUINT8, DT_STRING, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8, DT_VARIANT, Unrecognized}
 import io.hydrosphere.spark_ml_serving.common.{LocalData, LocalDataColumn}
 
 object TensorUtils {

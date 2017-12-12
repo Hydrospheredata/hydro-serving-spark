@@ -2,7 +2,7 @@ package io.hydrosphere.serving.grpc_spark.spark
 
 import java.nio.file.{Files, Path}
 
-import hydrosphere.contract.model_contract.ModelContract
+import io.hydrosphere.serving.contract.model_contract.ModelContract
 import io.hydrosphere.spark_ml_serving.common.PipelineLoader
 import org.apache.spark.ml.PipelineModel
 

@@ -1,8 +1,10 @@
+import java.nio.file.{Files, Paths}
+
 import com.google.protobuf.ByteString
-import hydrosphere.tensorflow.serving.predict.{PredictRequest, PredictResponse}
-import hydrosphere.tensorflow.tensor.TensorProto
-import hydrosphere.tensorflow.tensor_shape.TensorShapeProto
-import hydrosphere.tensorflow.types.DataType
+import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
+import io.hydrosphere.serving.tensorflow.tensor.TensorProto
+import io.hydrosphere.serving.tensorflow.tensor_shape.TensorShapeProto
+import io.hydrosphere.serving.tensorflow.types.DataType
 import io.hydrosphere.serving.grpc_spark.InferenceServiceImpl
 import org.scalatest.AsyncWordSpec
 
@@ -10,8 +12,8 @@ class PredictServiceSpec extends AsyncWordSpec {
   "PredictService" should {
     "infer simple Word2Vec request" in {
       val infImpl = new InferenceServiceImpl(
-        "/Users/bulat/Documents/Dev/Provectus/hydro-serving-runtime/models/word2vec",
-        "word2vec.protobin")
+        "src/test/resources/word2vec/model",
+        "src/test/resources/word2vec/contract/contract.protobin")
       val req = PredictRequest(
         inputs = Map(
           "text" -> TensorProto(
