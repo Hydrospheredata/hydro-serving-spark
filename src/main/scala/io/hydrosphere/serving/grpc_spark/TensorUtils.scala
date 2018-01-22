@@ -19,7 +19,7 @@ object TensorUtils {
       case (data, contract) if data == contract => true // two identical tensors
       case (None, Some(_)) => false // scalar and non-scalar
       case (Some(_), None) => false // non-scalar and scalar
-      case (Some(contract), Some(data)) if contract.dim.length != data.dim.length => false // different dims
+      case (Some(contract), Some(data)) if contract.dim.lengthCompare(data.dim.length) != 0 => false // different dims
       case (Some(contract), Some(data)) =>
         contract.dim.map(_.size).zip(data.dim.map(_.size)).forall {
           case (requiredLen, actualLen) =>
@@ -36,7 +36,7 @@ object TensorUtils {
 
   def requestToLocalData(dataFrame: Map[String, TensorProto], modelSignature: ModelSignature): LocalData = {
     val cols = modelSignature.inputs.map { in =>
-      val tensorData = in.infoOrDict.info.getOrElse(throw new IllegalStateException("Runtime doesnt support nested contracts"))
+      val tensorData = in.infoOrSubfields.info.getOrElse(throw new IllegalStateException("Runtime doesnt support nested contracts"))
       val sigData = dataFrame(in.fieldName)
       if (tensorData.dtype == sigData.dtype) {
         tensorToLocalColumn(in.fieldName, sigData)
@@ -53,7 +53,7 @@ object TensorUtils {
     val localMap = localData.toMapList
     val row = localMap.head
     val rowTensors = sig.outputs.map { out =>
-      val outTensor = out.infoOrDict.info.getOrElse(throw new IllegalStateException("Runtime doesnt support nested contracts"))
+      val outTensor = out.infoOrSubfields.info.getOrElse(throw new IllegalStateException("Runtime doesnt support nested contracts"))
       val outData = row(out.fieldName)
       out.fieldName -> anyToTensor(outData, outTensor.dtype, outTensor.tensorShape)
     }.toMap

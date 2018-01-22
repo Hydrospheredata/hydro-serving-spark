@@ -19,7 +19,7 @@ class InferenceServiceImpl(modelPath: String, modelDefPath: String) extends Pred
     val check = request.inputs.forall {
       case (name, tensor) =>
         sparkSignature.inputs.exists { ct =>
-          val tInfo = ct.infoOrDict.info.getOrElse(throw new IllegalStateException("Runtime doesnt suport nested contracts"))
+          val tInfo = ct.infoOrSubfields.info.getOrElse(throw new IllegalStateException("Runtime doesnt suport nested contracts"))
           ct.fieldName == name && TensorUtils.areShapesCompatible(tInfo.tensorShape, tensor.tensorShape) && tInfo.dtype == tensor.dtype
         }
     }
