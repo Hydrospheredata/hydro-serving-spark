@@ -8,11 +8,12 @@ import io.hydrosphere.serving.grpc_spark.spark.SparkModel
 
 import scala.concurrent.Future
 
-class InferenceServiceImpl(modelPath: String, modelDefPath: String) extends PredictionServiceGrpc.PredictionService {
+class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.PredictionService {
 
   import io.hydrosphere.spark_ml_serving.common.LocalPipelineModel._
-
-  val sparkModel = SparkModel.load(Paths.get(modelPath), Paths.get(modelDefPath))
+  val filesPath = s"$modelPath/files"
+  val contractPath = s"$modelPath/contract.protobin"
+  val sparkModel = SparkModel.load(Paths.get(filesPath), Paths.get(contractPath))
   val sparkSignature = sparkModel.modelContract.signatures.head
 
   override def predict(request: PredictRequest): Future[PredictResponse] = {

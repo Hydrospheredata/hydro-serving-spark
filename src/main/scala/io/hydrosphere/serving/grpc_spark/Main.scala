@@ -6,9 +6,7 @@ import io.grpc.ServerBuilder
 import scala.concurrent.ExecutionContext
 
 object Main extends App {
-  val infImpl = new InferenceServiceImpl(
-    "/model",
-    "/contract/contract.protobin")
+  val infImpl = new InferenceServiceImpl("/model")
   val service = PredictionServiceGrpc.bindService(infImpl, ExecutionContext.global)
   val server = ServerBuilder.forPort(9090).addService(service).build()
   server.start()
