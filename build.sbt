@@ -11,7 +11,7 @@ sparkVersionLogger := {
 }
 lazy val localSparkVersion = sparkVersion.substring(0,sparkVersion.lastIndexOf(".")).replace('.', '_')
 
-name := s"spark-grpc-${localSparkVersion.replace('_', '.')}"
+name := s"hydro-serving-spark-${localSparkVersion.replace('_', '.')}"
 organization := "io.hydrosphere"
 version := IO.read(file("version"))
 scalaVersion := "2.11.11"

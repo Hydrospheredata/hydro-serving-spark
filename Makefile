@@ -1,16 +1,17 @@
 # because sbt. See: https://github.com/sbt/sbt/issues/3266
+SBT=./sbt/sbt
 
 .PHONY: spark
 spark: spark-2.0.2 spark-2.1.2 spark-2.2.0
 
 .PHONY: spark-%
 spark-%:
-	sbt -DsparkVersion=$* docker
+	$(SBT) -DsparkVersion=$* docker
 
 test: test-2.0.2 test-2.1.2
 
 test-%:
-	sbt -DsparkVersion=$* test
+	$(SBT) -DsparkVersion=$* test
 
 clean:
-	sbt clean
+	$(SBT) clean
