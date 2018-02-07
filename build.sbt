@@ -1,12 +1,8 @@
 
 enablePlugins(DockerPlugin)
 
-lazy val sidecarVersion = scala.util.Properties.propOrElse("sidecarVersion", "0.0.1")
-lazy val sidecarPort = scala.util.Properties.propOrElse("sidecarPort", "8080")
-
-lazy val appPort = scala.util.Properties.propOrElse("appPort", "9090")
-
 lazy val sparkVersion = scala.util.Properties.propOrElse("sparkVersion", "2.1.2")
+lazy val isRelease = scala.util.Properties.propOrNone("isRelease").exists(_.toBoolean)
 lazy val sparkVersionLogger = taskKey[Unit]("Logs Spark version")
 
 sparkVersionLogger := {
@@ -15,9 +11,9 @@ sparkVersionLogger := {
 }
 lazy val localSparkVersion = sparkVersion.substring(0,sparkVersion.lastIndexOf(".")).replace('.', '_')
 
-name := s"spark-grpc-${localSparkVersion.replace('_', '.')}"
+name := s"hydro-serving-spark-${localSparkVersion.replace('_', '.')}"
 organization := "io.hydrosphere"
-version := "0.0.1"
+version := IO.read(file("version"))
 scalaVersion := "2.11.11"
 
 resolvers ++= Seq(
@@ -55,35 +51,26 @@ dockerfile in docker := {
   new Dockerfile {
     from("anapsix/alpine-java:8")
 
-    env("SIDECAR_HTTP_PORT", sidecarPort)
-    env("APP_HTTP_PORT", appPort)
-    env("APP_START_SCRIPT", "/app/start.sh")
-    env("SERVER_JAR", artifact.name)
+    env("SIDECAR_PORT", "8080")
+    env("SIDECAR_HOST","localhost")
+    env("APP_PORT", "9090")
 
-    add(file("start.sh"), "/app/start.sh")
-    addRaw(s"http://repo.hydrosphere.io/hydrosphere/static/hydro-serving-sidecar-install-$sidecarVersion.sh", "/app/sidecar.sh")
     add(artifact, artifactTargetPath)
 
     workDir("/app")
 
     run("apk", "update")
     run("apk", "add", "--no-cache", "curl")
-    run("chmod", "+x", "/app/start.sh")
-    run("chmod", "+x", "./sidecar.sh")
-    run("./sidecar.sh", "--target", "/hydro-serving/sidecar", "--", "alpine")
-    run("rm", "-rf", "sidecar.sh")
     run("rm", "-rf", "/var/cache/apk/*")
 
-    healthCheck(s"--interval=30s --timeout=3s --retries=3 CMD curl -f http://localhost:$appPort/health || exit 1")
-
-    cmd("/hydro-serving/sidecar/start.sh")
+    cmdRaw(s"java -jar ${artifact.name}")
   }
 }
 
 imageNames in docker := Seq(
   ImageName(
     namespace = Some("hydrosphere"),
-    repository = s"serving-grpc-runtime-spark-$localSparkVersion",
+    repository = s"serving-runtime-spark-$localSparkVersion",
     tag = Some(version.value)
   )
 )
