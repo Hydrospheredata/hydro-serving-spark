@@ -5,7 +5,7 @@ spark: spark-2.0.2 spark-2.1.2 spark-2.2.0
 
 .PHONY: spark-%
 spark-%:
-	sbt -DsparkVersion=$* docker
+	sbt -DsparkVersion=$* -Dsbt.override.build.repos=true -Dsbt.repository.config=project/repositories docker
 
 test: test-2.0.2 test-2.1.2
 
