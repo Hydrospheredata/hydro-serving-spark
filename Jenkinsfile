@@ -79,7 +79,7 @@ def calculateNextDevVersion(releaseVersion) {
 }
 
 node("JenkinsOnDemand") {
-    def repository = 'hydro-serving-tensorflow'
+    def repository = 'hydro-serving-spark'
     def organization = 'Hydrospheredata'
     def gitCredentialId = 'HydrospheredataGithubAccessKey'
 
