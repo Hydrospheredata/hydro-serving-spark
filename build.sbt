@@ -70,7 +70,7 @@ dockerfile in docker := {
 imageNames in docker := Seq(
   ImageName(
     namespace = Some("hydrosphere"),
-    repository = s"serving-runtime-spark-$localSparkVersion",
-    tag = Some(version.value)
+    repository = s"serving-runtime-spark",
+    tag = Some(s"${localSparkVersion.replace('_', '.')}-${version.value}")
   )
 )
