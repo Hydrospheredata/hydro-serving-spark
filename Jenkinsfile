@@ -1,7 +1,7 @@
 versions = [
-        "2.0.2",
-        "2.1.2",
-        "2.2.0"
+        "2.0",
+        "2.1",
+        "2.2"
 ]
 
 
@@ -100,10 +100,7 @@ node("JenkinsOnDemand") {
 
 
     stage('Build/Test/Deploy') {
-        for (int i = 0; i < versions.size(); i++) { //TODO switch to each after JENKINS-26481
-            def ver = versions.get(i)
-            sh "make spark-${ver}"
-        }
+        sh "make"
     }
 
     if (isReleaseJob()) {
