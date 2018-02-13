@@ -36,7 +36,7 @@ dockerfile in docker := {
   val artifactTargetPath = s"/app/app.jar"
 
   new Dockerfile {
-    from("anapsix/alpine-java:8")
+    from("openjdk:8u151-jre-alpine")
 
     env("SIDECAR_PORT", "8080")
     env("SIDECAR_HOST","localhost")
@@ -47,6 +47,8 @@ dockerfile in docker := {
     add(dockerFilesLocation, "/app/")
     add(classpath.files, "/app/lib/")
     add(jarFile, artifactTargetPath)
+
+    volume("/model")
 
     cmd("/app/start.sh")
   }

@@ -1,7 +1,9 @@
 #!/bin/sh
 
-SERVICE_ID=$1
+#!/usr/bin/env sh
 
-echo "Starting $SERVER_JAR"
+[ -z "$JAVA_XMX" ] && JAVA_XMX="256M"
 
-exec java -jar $SERVER_JAR
+JAVA_OPTS="-Xmx$JAVA_XMX -Xms$JAVA_XMX"
+
+java $JAVA_OPTS -cp "/app/app.jar:/app/lib/*" io.hydrosphere.serving.grpc_spark.Main
