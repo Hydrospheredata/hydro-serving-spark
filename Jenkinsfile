@@ -101,6 +101,7 @@ node("JenkinsOnDemand") {
 
     stage('Build/Test/Deploy') {
         sh "make"
+        sh "make test"
     }
 
     if (isReleaseJob()) {
