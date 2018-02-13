@@ -1,7 +1,3 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
-SERVICE_ID=$1
-
-echo "Starting $SERVER_JAR"
-
-exec java -jar $SERVER_JAR
+java -cp "/app/app.jar:/app/lib/*" io.hydrosphere.serving.grpc_spark.Main
