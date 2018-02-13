@@ -1,5 +1,4 @@
 import com.google.protobuf.ByteString
-import io.grpc.ManagedChannelBuilder
 import io.grpc.netty.{NettyChannelBuilder, NettyServerBuilder}
 import io.hydrosphere.serving.grpc_spark.InferenceServiceImpl
 import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
@@ -48,39 +47,6 @@ class PredictServiceSpec extends AsyncWordSpec {
       )
       val result = client.predict(req)
       server.shutdown()
-      assert(result === resp)
-    }
-
-    "infer remote runtime" in {
-      val channel = NettyChannelBuilder.forAddress("0.0.0.0", 9090).build()
-      val client = PredictionServiceGrpc.blockingStub(channel)
-      val req = PredictRequest(
-        inputs = Map(
-          "text" -> TensorProto(
-            DataType.DT_STRING,
-            Some(TensorShapeProto(
-              List(
-                TensorShapeProto.Dim(-1)
-              )
-            )),
-            stringVal = Seq(ByteString.copyFromUtf8("case"), ByteString.copyFromUtf8("class"), ByteString.copyFromUtf8("java"))
-          )
-        )
-      )
-      val resp = PredictResponse(
-        Map(
-          "result" -> TensorProto(
-            DataType.DT_DOUBLE,
-            Some(TensorShapeProto(
-              List(
-                TensorShapeProto.Dim(3)
-              )
-            )),
-            doubleVal = List(0.05097582439581553, 0.020204303165276844, 0.02578992396593094)
-          )
-        )
-      )
-      val result = client.predict(req)
       assert(result === resp)
     }
   }
