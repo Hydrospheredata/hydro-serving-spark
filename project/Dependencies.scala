@@ -4,7 +4,7 @@ object Dependencies {
 
   def spark(sparkVersion: String, localSparkVersion: String) =
     Seq(
-      "org.apache.spark" %% "spark-mllib" % sparkVersion,
+      "org.apache.spark" %% "spark-mllib" % sparkVersion exclude("io.netty", "netty"),
       "io.hydrosphere" %% s"spark-ml-serving-$localSparkVersion" % "0.2.2"
     )
 
@@ -24,8 +24,7 @@ object Dependencies {
 
   def protoMsg = {
     Seq(
-      "io.hydrosphere" %% "serving-grpc-scala" % "0.0.11",
-      "org.tensorflow" % "proto" % "1.4.0"
+      "io.hydrosphere" %% "serving-grpc-scala" % "0.0.12"
     )
   }
 

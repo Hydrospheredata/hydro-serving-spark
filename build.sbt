@@ -21,32 +21,19 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots")
 )
 
-libraryDependencies ++= Dependencies.spark(sparkVersion, localSparkVersion)
 libraryDependencies ++= Dependencies.akka
 libraryDependencies ++= Dependencies.grpc
 libraryDependencies ++= Dependencies.protoMsg
+libraryDependencies ++= Dependencies.spark(sparkVersion, localSparkVersion)
 libraryDependencies ++= Dependencies.test("3.0.4")
 
-assemblyMergeStrategy in assembly := {
-  case m if m.toLowerCase.endsWith("manifest.mf") => MergeStrategy.discard
-  case PathList("META-INF", "services", "org.apache.hadoop.fs.FileSystem") => MergeStrategy.filterDistinctLines
-  case m if m.startsWith("META-INF") => MergeStrategy.discard
-  case PathList("javax", "servlet", xs@_*) => MergeStrategy.first
-  case PathList("org", "apache", xs@_*) => MergeStrategy.first
-  case PathList("org", "jboss", xs@_*) => MergeStrategy.first
-  case "about.html" => MergeStrategy.rename
-  case "reference.conf" => MergeStrategy.concat
-  case PathList("org", "datanucleus", xs@_*) => MergeStrategy.discard
-  case _ => MergeStrategy.first
-}
-test in assembly := {}
-
-assembly := {assembly.dependsOn(sparkVersionLogger).value}
+compile in Compile := {(compile in Compile).dependsOn(sparkVersionLogger).value}
 
 dockerfile in docker := {
-  // The assembly task generates a fat JAR file
-  val artifact: File = assembly.value
-  val artifactTargetPath = s"/app/${artifact.name}"
+  val dockerFilesLocation = baseDirectory.value / "src/main/docker/"
+  val jarFile: File = sbt.Keys.`package`.in(Compile, packageBin).value
+  val classpath = (dependencyClasspath in Compile).value
+  val artifactTargetPath = s"/app/app.jar"
 
   new Dockerfile {
     from("anapsix/alpine-java:8")
@@ -55,15 +42,13 @@ dockerfile in docker := {
     env("SIDECAR_HOST","localhost")
     env("APP_PORT", "9090")
 
-    add(artifact, artifactTargetPath)
+    label("DEPLOYMENT_TYPE", "APP")
 
-    workDir("/app")
+    add(dockerFilesLocation, "/app/")
+    add(classpath.files, "/app/lib/")
+    add(jarFile, artifactTargetPath)
 
-    run("apk", "update")
-    run("apk", "add", "--no-cache", "curl")
-    run("rm", "-rf", "/var/cache/apk/*")
-
-    cmdRaw(s"java -jar ${artifact.name}")
+    cmd("/app/start.sh")
   }
 }
 
