@@ -5,13 +5,12 @@ import java.nio.file.Paths
 import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
 import io.hydrosphere.serving.tensorflow.api.prediction_service.PredictionServiceGrpc
 import io.hydrosphere.serving.grpc_spark.spark.SparkModel
-import io.hydrosphere.spark_ml_serving.common.LocalPipelineModel
+import io.hydrosphere.spark_ml_serving.LocalPipelineModel
 
 import scala.concurrent.Future
 
 class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.PredictionService {
 
-  import io.hydrosphere.spark_ml_serving.common.LocalPipelineModel._
 
   val filesPath = s"$modelPath/files"
   val contractPath = s"$modelPath/contract.protobin"
