@@ -9,8 +9,11 @@ import io.hydrosphere.serving.tensorflow.tensor_shape.TensorShapeProto
 import io.hydrosphere.serving.tensorflow.types.DataType
 import io.hydrosphere.serving.tensorflow.types.DataType.{DT_BOOL, DT_COMPLEX128, DT_COMPLEX64, DT_DOUBLE, DT_FLOAT, DT_INT16, DT_INT32, DT_INT64, DT_INT8, DT_INVALID, DT_QINT16, DT_QINT32, DT_QINT8, DT_QUINT16, DT_QUINT8, DT_STRING, DT_UINT16, DT_UINT32, DT_UINT64, DT_UINT8, DT_VARIANT, Unrecognized}
 import io.hydrosphere.spark_ml_serving.common.{LocalData, LocalDataColumn}
+import org.slf4j.LoggerFactory
 
 object TensorUtils {
+  val logger = LoggerFactory.getLogger(TensorUtils.getClass)
+
   def areShapesCompatible(
     contractShape: Option[TensorShapeProto],
     dataShape: Option[TensorShapeProto]
@@ -48,7 +51,7 @@ object TensorUtils {
   }
 
   def localDataToResult(modelContract: ModelContract, localData: LocalData): PredictResponse = {
-    println(localData)
+    logger.debug("{}", localData)
     val sig = modelContract.signatures.head
     val localMap = localData.toMapList
     val row = localMap.head
@@ -66,7 +69,7 @@ object TensorUtils {
       case e => List(e)
     }
 
-    println(data)
+    logger.debug("{}", data)
     val reshapedData = shape match {
       case Some(_) => flatten(data.asInstanceOf[Seq[Any]])
       case None => List(data)
@@ -92,7 +95,7 @@ object TensorUtils {
       case DT_VARIANT => throw new IllegalArgumentException(s"Cannot process DT_VARIANT Tensor. Not supported yet.")
 
       case Unrecognized(value) => throw new IllegalArgumentException(s"Cannot process Tensor with Unrecognized($value) dtype")
-      case x => throw new IllegalArgumentException(s"Cannot process Tensor with $x dtype")// refs
+      case x => throw new IllegalArgumentException(s"Cannot process Tensor with $x dtype") // refs
     }
   }
 
@@ -117,7 +120,7 @@ object TensorUtils {
       case DT_VARIANT => throw new IllegalArgumentException(s"Cannot process DT_VARIANT Tensor. Not supported yet.")
 
       case Unrecognized(value) => throw new IllegalArgumentException(s"Cannot process Tensor with Unrecognized($value) dtype")
-      case x => throw new IllegalArgumentException(s"Cannot process Tensor with $x dtype")// refs
+      case x => throw new IllegalArgumentException(s"Cannot process Tensor with $x dtype") // refs
     }
   }
 
@@ -144,4 +147,5 @@ object TensorUtils {
       }
     }
   }
+
 }

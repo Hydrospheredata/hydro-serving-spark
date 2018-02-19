@@ -6,22 +6,27 @@ import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictRes
 import io.hydrosphere.serving.tensorflow.api.prediction_service.PredictionServiceGrpc
 import io.hydrosphere.serving.grpc_spark.spark.SparkModel
 import io.hydrosphere.spark_ml_serving.LocalPipelineModel
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.Future
 
 class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.PredictionService {
+  val logger = LoggerFactory.getLogger(classOf[InferenceServiceImpl])
 
+  import io.hydrosphere.spark_ml_serving.LocalPipelineModel._
 
   val filesPath = s"$modelPath/files"
   val contractPath = s"$modelPath/contract.protobin"
   val sparkModel = SparkModel.load(Paths.get(filesPath), Paths.get(contractPath))
+
   val localModel: LocalPipelineModel = sparkModel.pipelineModel
-  println(localModel)
+  logger.info(s"$localModel")
+
   val sparkSignature = sparkModel.modelContract.signatures.head
-  println(sparkSignature)
+  logger.info(s"$sparkSignature")
 
   override def predict(request: PredictRequest): Future[PredictResponse] = {
-    println(request)
+    logger.debug("Prediction Request: {}", request)
     val check = request.inputs.forall {
       case (name, tensor) =>
         sparkSignature.inputs.exists { ct =>
@@ -34,10 +39,10 @@ class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.Pred
 
     if (check) {
       val result = serve(request)
-      println(result)
+      logger.debug("Prediction Result: {}", result)
       Future.successful(result)
     } else {
-      println(s"Model contract violated with $request")
+      logger.debug("Model contract violated with: {}", request)
       Future.failed(new IllegalArgumentException(s"Model contract violated with $request"))
     }
   }
