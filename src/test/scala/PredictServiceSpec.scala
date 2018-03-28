@@ -12,6 +12,34 @@ import scala.concurrent.ExecutionContext
 
 class PredictServiceSpec extends AsyncWordSpec {
   "PredictService" should {
+    //    "generate contract for Word2Vec" in {
+    //      val contract = ModelContract(
+    //        modelName = "word2vec",
+    //        signatures = Seq(
+    //          ModelSignature(
+    //            signatureName = "default_spark",
+    //            inputs = Seq(
+    //              ModelField(
+    //                "text",
+    //                TensorShape.vector(-1).toProto,
+    //                typeOrSubfields = ModelField.TypeOrSubfields.Dtype(DataType.DT_STRING)
+    //              )
+    //            ),
+    //            outputs = Seq(
+    //              ModelField(
+    //                "result",
+    //                TensorShape.vector(3).toProto,
+    //                typeOrSubfields = ModelField.TypeOrSubfields.Dtype(DataType.DT_DOUBLE)
+    //              )
+    //            )
+    //          )
+    //        )
+    //      )
+    //      val contractPath = Paths.get("contractw2v.protobin")
+    //      Files.write(contractPath, contract.toByteArray)
+    //      assert(Files.exists(contractPath))
+    //    }
+
     "infer simple Word2Vec request" in {
       val infImpl = new InferenceServiceImpl("src/test/resources/word2vec")
       val service = PredictionServiceGrpc.bindService(infImpl, ExecutionContext.global)
