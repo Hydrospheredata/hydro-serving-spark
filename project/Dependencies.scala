@@ -5,7 +5,7 @@ object Dependencies {
   def spark(sparkVersion: String, localSparkVersion: String) =
     Seq(
       "org.apache.spark" %% "spark-mllib" % sparkVersion exclude("io.netty", "netty") exclude("io.netty", "netty-all"),
-      "io.hydrosphere" %% s"spark-ml-serving-$localSparkVersion" % "0.3.1"
+      "io.hydrosphere" %% s"spark-ml-serving-$localSparkVersion" % "0.3.3"
     )
 
   def akka = {
