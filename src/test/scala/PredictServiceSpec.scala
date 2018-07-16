@@ -1,9 +1,10 @@
 import com.google.protobuf.ByteString
 import io.grpc.netty.{NettyChannelBuilder, NettyServerBuilder}
 import io.hydrosphere.serving.grpc_spark.InferenceServiceImpl
+import io.hydrosphere.serving.tensorflow.TensorShape
 import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
 import io.hydrosphere.serving.tensorflow.api.prediction_service.PredictionServiceGrpc
-import io.hydrosphere.serving.tensorflow.tensor.TensorProto
+import io.hydrosphere.serving.tensorflow.tensor.{DoubleTensor, TensorProto}
 import io.hydrosphere.serving.tensorflow.tensor_shape.TensorShapeProto
 import io.hydrosphere.serving.tensorflow.types.DataType
 import org.scalatest.AsyncWordSpec
@@ -35,7 +36,28 @@ class PredictServiceSpec extends AsyncWordSpec {
     //          )
     //        )
     //      )
-    //      val contractPath = Paths.get("contractw2v.protobin")
+    //      val contractPath = Paths.get("contract.protobin")
+    //      Files.write(contractPath, contract.toByteArray)
+    //      assert(Files.exists(contractPath))
+    //    }
+    //    "generate contract for Binarizer" in {
+    //      val contract = ModelContract(
+    //        "binarizer",
+    //        Seq(ModelSignature(
+    //          signatureName = "default_spark",
+    //          inputs = Seq(ModelField(
+    //            name = "feature",
+    //            shape = TensorShape.scalar.toProto,
+    //            typeOrSubfields = ModelField.TypeOrSubfields.Dtype(DataType.DT_DOUBLE)
+    //          )),
+    //          outputs = Seq(ModelField(
+    //            name = "binarized_feature",
+    //            shape = TensorShape.scalar.toProto,
+    //            typeOrSubfields = ModelField.TypeOrSubfields.Dtype(DataType.DT_DOUBLE)
+    //          ))
+    //        ))
+    //      )
+    //      val contractPath = Paths.get("contract.protobin")
     //      Files.write(contractPath, contract.toByteArray)
     //      assert(Files.exists(contractPath))
     //    }
@@ -45,7 +67,7 @@ class PredictServiceSpec extends AsyncWordSpec {
       val service = PredictionServiceGrpc.bindService(infImpl, ExecutionContext.global)
       val server = NettyServerBuilder.forPort(9091).addService(service).build()
       server.start()
-      val channel = NettyChannelBuilder.forAddress("0.0.0.0", 9091).usePlaintext(true).build()
+      val channel = NettyChannelBuilder.forAddress("0.0.0.0", 9091).usePlaintext().build()
       val client = PredictionServiceGrpc.blockingStub(channel)
       val req = PredictRequest(
         inputs = Map(
@@ -71,6 +93,28 @@ class PredictServiceSpec extends AsyncWordSpec {
             )),
             doubleVal = List(0.05097582439581553, 0.020204303165276844, 0.02578992396593094)
           )
+        )
+      )
+      val result = client.predict(req)
+      server.shutdown()
+      assert(result === resp)
+    }
+
+    "infer simple Binarizer request" in {
+      val infImpl = new InferenceServiceImpl("src/test/resources/binarizer")
+      val service = PredictionServiceGrpc.bindService(infImpl, ExecutionContext.global)
+      val server = NettyServerBuilder.forPort(9091).addService(service).build()
+      server.start()
+      val channel = NettyChannelBuilder.forAddress("0.0.0.0", 9091).usePlaintext().build()
+      val client = PredictionServiceGrpc.blockingStub(channel)
+      val req = PredictRequest(
+        inputs = Map(
+          "feature" -> DoubleTensor(TensorShape.scalar, Seq(5.0)).toProto
+        )
+      )
+      val resp = PredictResponse(
+        Map(
+          "binarized_feature" -> DoubleTensor(TensorShape.scalar, Seq(0.0)).toProto
         )
       )
       val result = client.predict(req)

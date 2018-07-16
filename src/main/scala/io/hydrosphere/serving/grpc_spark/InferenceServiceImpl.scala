@@ -5,7 +5,7 @@ import java.nio.file.Paths
 import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
 import io.hydrosphere.serving.tensorflow.api.prediction_service.PredictionServiceGrpc
 import io.hydrosphere.serving.grpc_spark.spark.SparkModel
-import io.hydrosphere.serving.tensorflow.utils.ops.TensorShapeProtoOps
+import io.hydrosphere.serving.grpc_spark.util.TensorUtils
 import io.hydrosphere.spark_ml_serving.LocalPipelineModel
 import org.slf4j.LoggerFactory
 
@@ -33,7 +33,6 @@ class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.Pred
         sparkSignature.inputs.exists { ct =>
           val tInfo = ct.typeOrSubfields.dtype.getOrElse(throw new IllegalStateException("Runtime doesnt suport nested contracts"))
           ct.name == name &&
-          TensorShapeProtoOps.merge(ct.shape, tensor.tensorShape).isDefined &&
             tInfo == tensor.dtype
         }
     }
