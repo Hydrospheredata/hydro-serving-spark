@@ -109,12 +109,16 @@ node("JenkinsOnDemand") {
             def releaseVersion = calculateReleaseVersion(curVersion)
             sh "git checkout -b release_temp"
             changeVersion(releaseVersion)
+            echo currentVersion()
         }
     }
 
 
-    stage('Build/Test/Deploy') {
+    stage('Build') {
         sh "make"
+    }
+
+    stage("Test") {
         sh "make test"
     }
 
@@ -125,7 +129,7 @@ node("JenkinsOnDemand") {
         }
 
         stage('Push docker') {
-            imageVersion = currentVersion()
+            def imageVersion = currentVersion()
             for (int i = 0; i < versions.size(); i++) { //TODO switch to each after JENKINS-26481
                 def ver = versions.get(i)
 
