@@ -2,7 +2,6 @@
 enablePlugins(DockerPlugin)
 
 lazy val sparkVersion = scala.util.Properties.propOrElse("sparkVersion", "2.1.2")
-lazy val isRelease = scala.util.Properties.propOrNone("isRelease").exists(_.toBoolean)
 lazy val sparkVersionLogger = taskKey[Unit]("Logs Spark version")
 
 sparkVersionLogger := {
@@ -13,7 +12,7 @@ lazy val localSparkVersion = sparkVersion.substring(0,sparkVersion.lastIndexOf("
 
 name := s"hydro-serving-spark-${localSparkVersion.replace('_', '.')}"
 organization := "io.hydrosphere"
-version := IO.read(file("version"))
+version := IO.read(file("version")).trim
 scalaVersion := "2.11.11"
 
 resolvers ++= Seq(
@@ -57,7 +56,7 @@ dockerfile in docker := {
 imageNames in docker := Seq(
   ImageName(
     namespace = Some("hydrosphere"),
-    repository = s"serving-runtime-spark",
-    tag = Some(s"${localSparkVersion.replace('_', '.')}-latest")
+    repository = s"serving-runtime-spark-${localSparkVersion.replace('_', '.')}",
+    tag = Some(version.value)
   )
 )

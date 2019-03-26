@@ -21,15 +21,14 @@ object TensorUtils {
       if (tensorType == sigData.dtype) {
         tensorToLocalColumn(in.name, sigData)
       } else {
-        throw new IllegalArgumentException(s"Expected ${tensorType}, got ${sigData.dtype}")
+        throw new IllegalArgumentException(s"Expected $tensorType, got ${sigData.dtype}")
       }
     }
     LocalData(cols.toList)
   }
 
-  def localDataToResult(modelContract: ModelContract, localData: LocalData): PredictResponse = {
+  def localDataToResult(sig: ModelSignature, localData: LocalData): PredictResponse = {
     logger.debug("{}", localData)
-    val sig = modelContract.signatures.head
     val localMap = localData.toMapList
     val row = localMap.head
     val rowTensors = sig.outputs.map { out =>
@@ -42,7 +41,7 @@ object TensorUtils {
             case s: Seq[_] => s
             case x => Seq(x)
           }
-          val maybeColTensor = tensorFactory.createFromAny(colData, TensorShape.fromProto(out.shape))
+          val maybeColTensor = tensorFactory.createFromAny(colData, TensorShape(out.shape))
           val colTensor = maybeColTensor.getOrElse(
             throw new IllegalArgumentException(s"Cant create tensor from $column")
           )

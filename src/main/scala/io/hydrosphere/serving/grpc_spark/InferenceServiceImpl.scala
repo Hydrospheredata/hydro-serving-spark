@@ -2,10 +2,10 @@ package io.hydrosphere.serving.grpc_spark
 
 import java.nio.file.Paths
 
+import com.google.protobuf.empty.Empty
 import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
-import io.hydrosphere.serving.tensorflow.api.prediction_service.PredictionServiceGrpc
+import io.hydrosphere.serving.tensorflow.api.prediction_service.{PredictionServiceGrpc, StatusResponse}
 import io.hydrosphere.serving.grpc_spark.spark.SparkModel
-import io.hydrosphere.serving.tensorflow.utils.ops.TensorShapeProtoOps
 import io.hydrosphere.spark_ml_serving.LocalPipelineModel
 import org.slf4j.LoggerFactory
 
@@ -23,7 +23,7 @@ class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.Pred
   val localModel: LocalPipelineModel = sparkModel.pipelineModel
   logger.info(s"$localModel")
 
-  val sparkSignature = sparkModel.modelContract.signatures.head
+  val sparkSignature = sparkModel.modelContract.predict.getOrElse(throw new IllegalStateException("The model doesn't have predict signature"))
   logger.info(s"$sparkSignature")
 
   override def predict(request: PredictRequest): Future[PredictResponse] = {
@@ -32,9 +32,7 @@ class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.Pred
       case (name, tensor) =>
         sparkSignature.inputs.exists { ct =>
           val tInfo = ct.typeOrSubfields.dtype.getOrElse(throw new IllegalStateException("Runtime doesnt suport nested contracts"))
-          ct.name == name &&
-          TensorShapeProtoOps.merge(ct.shape, tensor.tensorShape).isDefined &&
-            tInfo == tensor.dtype
+          ct.name == name && tInfo == tensor.dtype
         }
     }
 
@@ -51,6 +49,13 @@ class InferenceServiceImpl(modelPath: String) extends PredictionServiceGrpc.Pred
   def serve(request: PredictRequest): PredictResponse = {
     val inputDF = TensorUtils.requestToLocalData(request.inputs, sparkSignature)
     val res = localModel.transform(inputDF)
-    TensorUtils.localDataToResult(sparkModel.modelContract, res)
+    TensorUtils.localDataToResult(sparkSignature, res)
   }
+
+  override def status(request: Empty): Future[StatusResponse] = Future.successful(
+    StatusResponse(
+      status = StatusResponse.ServiceStatus.SERVING,
+      message = "ok"
+    )
+  )
 }

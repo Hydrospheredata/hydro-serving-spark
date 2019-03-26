@@ -24,7 +24,7 @@ object Dependencies {
 
   def protoMsg = {
     Seq(
-      "io.hydrosphere" %% "serving-grpc-scala" % "0.1.0"
+      "io.hydrosphere" %% "serving-grpc-scala" % "2.0.0-rc7dev2"
     )
   }
 
