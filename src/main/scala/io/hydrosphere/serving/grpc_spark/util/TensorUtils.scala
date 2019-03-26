@@ -1,18 +1,63 @@
-package io.hydrosphere.serving.grpc_spark
+package io.hydrosphere.serving.grpc_spark.util
 
 import io.hydrosphere.serving.contract.model_contract.ModelContract
 import io.hydrosphere.serving.contract.model_signature.ModelSignature
 import io.hydrosphere.serving.tensorflow.TensorShape
+import io.hydrosphere.serving.tensorflow.TensorShape.{AnyDims, Dims}
 import io.hydrosphere.serving.tensorflow.api.predict.PredictResponse
-import io.hydrosphere.serving.tensorflow.tensor.{TensorProto, TypedTensorFactory}
-import io.hydrosphere.serving.tensorflow.tensor_shape.TensorShapeProto
+import io.hydrosphere.serving.tensorflow.tensor.{TensorProto, TypedTensor, TypedTensorFactory}
 import io.hydrosphere.spark_ml_serving.common.{LocalData, LocalDataColumn}
 import org.slf4j.LoggerFactory
 
-import scala.annotation.tailrec
-
 object TensorUtils {
   val logger = LoggerFactory.getLogger(TensorUtils.getClass)
+
+  def verifyShape[T](tensor: TypedTensor[T]): TypedTensor[T] = {
+    tensor.shape match {
+      case AnyDims() => tensor
+      case Dims(tensorDims, _) if tensorDims.isEmpty => tensor
+      case Dims(tensorDims, _) =>
+        if (tensorDims.isEmpty && tensor.data.length <= 1) {
+          tensor
+        } else {
+          val reverseTensorDimIter = tensorDims.reverseIterator
+
+          val actualDims = Array.fill(tensorDims.length)(0L)
+          var actualDimId = actualDims.indices.last
+          var dimLen = tensor.data.length
+
+          var isShapeOk = true
+
+          while (isShapeOk && reverseTensorDimIter.hasNext) {
+            val currentDim = reverseTensorDimIter.next()
+            val subCount = dimLen.toDouble / currentDim.toDouble
+            if (subCount.isWhole()) { // ok
+              dimLen = subCount.toInt
+              if (subCount < 0) {
+                actualDims(actualDimId) = dimLen.abs
+              } else {
+                actualDims(actualDimId) = currentDim
+              }
+              actualDimId -= 1
+            } else { // not ok
+              isShapeOk = false
+            }
+          }
+
+          if (isShapeOk) {
+            val rawTensor = tensor.toProto.copy(tensorShape = Dims(actualDims).toProto)
+            val result = tensor.factory.fromProto(rawTensor)
+            result
+          } else {
+            throw new IllegalArgumentException(s"Invalid shape $tensorDims for data ${tensor.data}")
+          }
+        }
+    }
+  }
+
+  def verifyShape(tensor: TensorProto): TensorProto = {
+    verifyShape(TypedTensorFactory.create(tensor)).toProto
+  }
 
   def requestToLocalData(dataFrame: Map[String, TensorProto], modelSignature: ModelSignature): LocalData = {
     val cols = modelSignature.inputs.map { in =>
@@ -30,14 +75,13 @@ object TensorUtils {
   def localDataToResult(sig: ModelSignature, localData: LocalData): PredictResponse = {
     logger.debug("{}", localData)
     val localMap = localData.toMapList
-    val row = localMap.head
     val rowTensors = sig.outputs.map { out =>
       val outType = out.typeOrSubfields.dtype.getOrElse(throw new IllegalStateException("Runtime doesnt support nested contracts"))
       localData.column(out.name) match {
         case Some(column) =>
           val colShape = column.data.length
           val tensorFactory = TypedTensorFactory(outType)
-          val colData = column.data.flatMap{
+          val colData = column.data.flatMap {
             case s: Seq[_] => s
             case x => Seq(x)
           }
@@ -53,34 +97,9 @@ object TensorUtils {
   }
 
   def tensorToLocalColumn(name: String, tensorProto: TensorProto): LocalDataColumn[_] = {
-    val shaper = ColumnShaper(name, tensorProto.tensorShape)
-    val tensor = TypedTensorFactory.create(tensorProto)
-    shaper(tensor.data)
+    val verified = verifyShape(tensorProto)
+    val shaper = ColumnShaper(name, TensorShape(verified.tensorShape))
+    val tensor = TypedTensorFactory.create(verified)
+    shaper.shape(tensor.data)
   }
-
-  case class ColumnShaper(name: String, tensorShapeProto: Option[TensorShapeProto]) {
-    def apply(data: Seq[_]): LocalDataColumn[_] = {
-      tensorShapeProto match {
-        case Some(shape) =>
-          val dims = shape.dim.map(_.size).reverseIterator
-          LocalDataColumn[Any](name, List(shapeGrouped(data.toList, dims)))
-        case None => LocalDataColumn[Any](name, data.toList) // as-is because None shape is a scalar
-      }
-    }
-
-    @tailrec
-    final def shapeGrouped(data: List[Any], shapeIter: Iterator[Long]): List[Any] = {
-      if (shapeIter.nonEmpty) {
-        val dimShape = shapeIter.next()
-        if (dimShape == -1) {
-          shapeGrouped(data, shapeIter)
-        } else {
-          shapeGrouped(data.grouped(dimShape.toInt).toList, shapeIter)
-        }
-      } else {
-        data
-      }
-    }
-  }
-
 }
