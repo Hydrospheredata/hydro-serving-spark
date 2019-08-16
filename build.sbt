@@ -20,11 +20,7 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots")
 )
 
-libraryDependencies ++= Dependencies.akka
-libraryDependencies ++= Dependencies.grpc
-libraryDependencies ++= Dependencies.protoMsg
-libraryDependencies ++= Dependencies.spark(sparkVersion, localSparkVersion)
-libraryDependencies ++= Dependencies.test("3.0.4")
+libraryDependencies ++= Dependencies.all(sparkVersion, localSparkVersion)
 
 compile in Compile := {(compile in Compile).dependsOn(sparkVersionLogger).value}
 
@@ -56,7 +52,7 @@ dockerfile in docker := {
 imageNames in docker := Seq(
   ImageName(
     namespace = Some("hydrosphere"),
-    repository = s"serving-runtime-spark-${localSparkVersion.replace('_', '.')}",
-    tag = Some(version.value)
+    repository = s"serving-runtime-spark-${sparkVersion}",
+    tag = Some(s"${version.value}")
   )
 )

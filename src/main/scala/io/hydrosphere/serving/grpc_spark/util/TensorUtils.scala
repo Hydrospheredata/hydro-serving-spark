@@ -1,6 +1,5 @@
 package io.hydrosphere.serving.grpc_spark.util
 
-import io.hydrosphere.serving.contract.model_contract.ModelContract
 import io.hydrosphere.serving.contract.model_signature.ModelSignature
 import io.hydrosphere.serving.tensorflow.TensorShape
 import io.hydrosphere.serving.tensorflow.TensorShape.{AnyDims, Dims}
@@ -14,7 +13,7 @@ object TensorUtils {
 
   def verifyShape[T](tensor: TypedTensor[T]): TypedTensor[T] = {
     tensor.shape match {
-      case AnyDims() => tensor
+      case AnyDims => tensor
       case Dims(tensorDims, _) if tensorDims.isEmpty => tensor
       case Dims(tensorDims, _) =>
         if (tensorDims.isEmpty && tensor.data.length <= 1) {

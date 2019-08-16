@@ -1,9 +1,9 @@
 def repository = 'hydro-serving-spark'
 
 def versions = [
-        "2.0",
-        "2.1",
-        "2.2"
+        "2.0.2",
+        "2.1.2",
+        "2.2.0"
 ]
 
 def sparkImages = versions.collect {"hydrosphere/serving-runtime-spark-${it}"}

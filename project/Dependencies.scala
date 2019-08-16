@@ -8,6 +8,10 @@ object Dependencies {
       "io.hydrosphere" %% s"spark-ml-serving-$localSparkVersion" % "0.3.3"
     )
 
+  def cats = Seq(
+    "org.typelevel" %% "cats-effect" % "1.2.0"
+  )
+
   def akka = {
     Seq(
       "io.spray" %%  "spray-json" % "1.3.3"
@@ -16,23 +20,20 @@ object Dependencies {
 
   def grpc = {
     Seq(
-      "com.trueaccord.scalapb" %% "scalapb-runtime" % com.trueaccord.scalapb.compiler.Version.scalapbVersion % "protobuf",
-      "io.grpc" % "grpc-netty" % com.trueaccord.scalapb.compiler.Version.grpcJavaVersion,
-      "com.trueaccord.scalapb" %% "scalapb-runtime-grpc" % com.trueaccord.scalapb.compiler.Version.scalapbVersion
+      "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion,
+      "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
+
+      "io.hydrosphere" %% "serving-grpc-scala" % "2.1.0-preview0"
     )
   }
 
-  def protoMsg = {
+  def test = {
     Seq(
-      "io.hydrosphere" %% "serving-grpc-scala" % "2.0.0-rc7dev2"
+      "org.scalactic" %% "scalactic" % "3.0.4",
+      "org.scalatest" %% "scalatest" % "3.0.4" % "test"
     )
   }
 
-  def test(scalatestVersion: String) = {
-    Seq(
-      "org.scalactic" %% "scalactic" % scalatestVersion,
-      "org.scalatest" %% "scalatest" % scalatestVersion % "test"
-    )
-  }
+  def all = spark(_: String, _: String) ++ akka ++ grpc ++ test ++ cats
 
 }

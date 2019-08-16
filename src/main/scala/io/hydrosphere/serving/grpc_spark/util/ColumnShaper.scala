@@ -51,7 +51,7 @@ case class DimShaper(name: String, dims: Seq[Long]) extends ColumnShaper {
 object ColumnShaper {
   def apply(name: String, tensorShape: TensorShape): ColumnShaper = {
     tensorShape match {
-      case AnyDims() => ScalarShaper(name)
+      case AnyDims => ScalarShaper(name)
       case Dims(dims, _) if dims.isEmpty => ScalarShaper(name)
       case Dims(dims, _) => DimShaper(name, dims)
     }

@@ -1,6 +1,9 @@
+import java.nio.file.Paths
+
+import cats.effect.IO
 import com.google.protobuf.ByteString
-import io.grpc.netty.{NettyChannelBuilder, NettyServerBuilder}
-import io.hydrosphere.serving.grpc_spark.InferenceServiceImpl
+import io.grpc.netty.NettyChannelBuilder
+import io.hydrosphere.serving.grpc_spark.Core
 import io.hydrosphere.serving.tensorflow.TensorShape
 import io.hydrosphere.serving.tensorflow.api.predict.{PredictRequest, PredictResponse}
 import io.hydrosphere.serving.tensorflow.api.prediction_service.PredictionServiceGrpc
@@ -8,8 +11,6 @@ import io.hydrosphere.serving.tensorflow.tensor.{DoubleTensor, TensorProto}
 import io.hydrosphere.serving.tensorflow.tensor_shape.TensorShapeProto
 import io.hydrosphere.serving.tensorflow.types.DataType
 import org.scalatest.AsyncWordSpec
-
-import scala.concurrent.ExecutionContext
 
 class PredictServiceSpec extends AsyncWordSpec {
   "PredictService" should {
@@ -63,11 +64,9 @@ class PredictServiceSpec extends AsyncWordSpec {
     //    }
 
     "infer simple Word2Vec request" in {
-      val infImpl = new InferenceServiceImpl("src/test/resources/word2vec")
-      val service = PredictionServiceGrpc.bindService(infImpl, ExecutionContext.global)
-      val server = NettyServerBuilder.forPort(9091).addService(service).build()
+      val server = Core.app[IO](Paths.get("src/test/resources/word2vec"), 9090).unsafeRunSync()
       server.start()
-      val channel = NettyChannelBuilder.forAddress("0.0.0.0", 9091).usePlaintext().build()
+      val channel = NettyChannelBuilder.forAddress("0.0.0.0", 9090).usePlaintext().build()
       val client = PredictionServiceGrpc.blockingStub(channel)
       val req = PredictRequest(
         inputs = Map(
@@ -101,9 +100,7 @@ class PredictServiceSpec extends AsyncWordSpec {
     }
 
     "infer simple Binarizer request" in {
-      val infImpl = new InferenceServiceImpl("src/test/resources/binarizer")
-      val service = PredictionServiceGrpc.bindService(infImpl, ExecutionContext.global)
-      val server = NettyServerBuilder.forPort(9091).addService(service).build()
+      val server = Core.app[IO](Paths.get("src/test/resources/binarizer"), 9091).unsafeRunSync()
       server.start()
       val channel = NettyChannelBuilder.forAddress("0.0.0.0", 9091).usePlaintext().build()
       val client = PredictionServiceGrpc.blockingStub(channel)
